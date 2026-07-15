@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AsciiCat Studio | Premium Real-time ASCII Simulator & Video Converter</title>
+  <meta name="description" content="A state-of-the-art interactive ASCII simulator featuring a procedural black cat sprinting in high contrast, with custom rendering, slow-motion, and video conversion capabilities.">
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts: Space Grotesk & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <span class="pulse-dot"></span>
+        <h1>ASCIICAT STUDIO</h1>
+        <span class="version-tag">v1.0.0</span>
+      </div>
+      <div class="system-status">
+        <div class="status-item">
+          <span class="label">SIMULATION:</span>
+          <span class="value success" id="status-simulation">ACTIVE</span>
+        </div>
+        <div class="status-item">
+          <span class="label">RENDERER:</span>
+          <span class="value success" id="status-renderer">MONOSPACED_CANVAS</span>
+        </div>
+        <div class="status-item">
+          <span class="label">WORKSPACE:</span>
+          <span class="value" id="status-workspace">LOCAL_SANDBOX</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <div class="workspace-grid">
+      
+      <!-- Left Panel: Telemetry & Presets -->
+      <aside class="panel left-panel" aria-label="Telemetry and Presets">
+        <div class="panel-section">
+          <h2>Telemetry Dashboard</h2>
+          <div class="telemetry-grid">
+            <div class="telemetry-card">
+              <span class="card-label">Render Rate</span>
+              <span class="card-value" id="tele-fps">60.0 fps</span>
+            </div>
+            <div class="telemetry-card">
+              <span class="card-label">CPU Compute</span>
+              <span class="card-value" id="tele-latency">0.8 ms</span>
+            </div>
+            <div class="telemetry-card">
+              <span class="card-label">Gait Frequency</span>
+              <span class="card-value" id="tele-gait">2.4 Hz</span>
+            </div>
+            <div class="telemetry-card">
+              <span class="card-label">Cat Velocity</span>
+              <span class="card-value" id="tele-speed">18.4 px/f</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h2>Preset Selectors</h2>
+          <div class="preset-selector-group">
+            <button class="preset-btn active" id="preset-sprint" data-preset="sprint">
+              <span class="btn-icon">⚡</span>
+              <div class="btn-text">
+                <span class="btn-title">Cat Sprint</span>
+                <span class="btn-desc">Full speed running animation</span>
+              </div>
+            </button>
+            <button class="preset-btn" id="preset-stalk" data-preset="stalk">
+              <span class="btn-icon">🐈‍⬛</span>
+              <div class="btn-text">
+                <span class="btn-title">Cat Stalk</span>
+                <span class="btn-desc">Slow, low-profile sneaking gait</span>
+              </div>
+            </button>
+            <button class="preset-btn" id="preset-walk" data-preset="walk">
+              <span class="btn-icon">🐾</span>
+              <div class="btn-text">
+                <span class="btn-title">Cat Walk</span>
+                <span class="btn-desc">Relaxed walking pace</span>
+              </div>
+            </button>
+            <button class="preset-btn" id="preset-trot" data-preset="trot">
+              <span class="btn-icon">🐎</span>
+              <div class="btn-text">
+                <span class="btn-title">Cat Trot</span>
+                <span class="btn-desc">Medium speed bounce run</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-section video-upload-section">
+          <h2>External Input Source</h2>
+          <div class="upload-dropzone" id="upload-dropzone">
+            <div class="dropzone-icon">📤</div>
+            <p class="dropzone-main-text">Drag & Drop Video</p>
+            <p class="dropzone-sub-text">or click to browse media</p>
+            <input type="file" id="video-input" accept="video/*" class="file-input">
+          </div>
+          <div class="video-preview-container hidden" id="video-preview-container">
+            <div class="video-preview-header">
+              <span id="video-filename">video.mp4</span>
+              <button class="icon-btn" id="btn-remove-video" title="Clear video">×</button>
+            </div>
+            <video id="hidden-video" loop muted playsinline></video>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Panel: The ASCII CRT Monitor -->
+      <main class="panel center-panel" aria-label="ASCII Viewport">
+        <div class="viewport-header">
+          <div class="viewport-controls-left">
+            <span class="terminal-prompt">&gt;</span>
+            <span class="terminal-title">LIVE_ASCII_OUTPUT</span>
+          </div>
+          <div class="viewport-controls-right">
+            <button class="badge-toggle active" id="toggle-crt-scanlines">SCANLINES</button>
+            <button class="badge-toggle active" id="toggle-crt-flicker">FLICKER</button>
+            <button class="badge-toggle" id="toggle-original-overlay">OVERLAY RENDER</button>
+          </div>
+        </div>
+
+        <!-- The CRT Container -->
+        <div class="crt-monitor-container">
+          <div class="crt-screen" id="crt-screen">
+            <!-- Canvas where ASCII is drawn -->
+            <canvas id="ascii-canvas"></canvas>
+            
+            <!-- Floating original vector overlay (for side-by-side or comparison) -->
+            <div class="original-overlay hidden" id="original-overlay-container">
+              <div class="overlay-title">Vector Source</div>
+              <canvas id="source-canvas"></canvas>
+            </div>
+            
+            <!-- Scanlines & vignette elements -->
+            <div class="crt-vignette"></div>
+            <div class="crt-scanlines"></div>
+            <div class="crt-glow"></div>
+          </div>
+        </div>
+
+        <!-- Bottom Playback Control bar inside Center Panel -->
+        <div class="playback-controls">
+          <button class="play-btn" id="btn-play" title="Play Simulation">
+            <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="pause-icon hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button class="step-btn" id="btn-step" title="Frame Step (Forward)">
+            <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+          
+          <div class="slider-control speed-slider-container">
+            <span class="slider-label">Speed</span>
+            <input type="range" id="slider-speed" min="0" max="2" step="0.05" value="1.0">
+            <span class="slider-value" id="val-speed">1.0x</span>
+          </div>
+
+          <div class="speed-presets">
+            <button class="speed-preset-btn" data-speed="0.1" title="Super Slow-Mo">0.1x</button>
+            <button class="speed-preset-btn" data-speed="0.25">0.25x</button>
+            <button class="speed-preset-btn" data-speed="0.5">0.5x</button>
+            <button class="speed-preset-btn active" data-speed="1.0">1.0x</button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Panel: Configurations & Rendering Parameters -->
+      <aside class="panel right-panel" aria-label="Settings and Options">
+        <div class="panel-section">
+          <h2>ASCII Grid Resolution</h2>
+          <div class="slider-control">
+            <span class="slider-label">Grid Width (Cols)</span>
+            <input type="range" id="slider-cols" min="40" max="240" step="5" value="120">
+            <span class="slider-value" id="val-cols">120</span>
+          </div>
+          <div class="slider-control">
+            <span class="slider-label">Grid Height (Rows)</span>
+            <input type="range" id="slider-rows" min="20" max="100" step="2" value="50">
+            <span class="slider-value" id="val-rows">50</span>
+          </div>
+          <div class="slider-control">
+            <span class="slider-label">Font Size (px)</span>
+            <input type="range" id="slider-font-size" min="6" max="20" step="1" value="10">
+            <span class="slider-value" id="val-font-size">10px</span>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h2>Luminance & Contrast</h2>
+          <div class="slider-control">
+            <span class="slider-label">Threshold / Cutoff</span>
+            <input type="range" id="slider-threshold" min="0" max="255" step="5" value="128">
+            <span class="slider-value" id="val-threshold">128</span>
+          </div>
+          <div class="slider-control">
+            <span class="slider-label">Contrast Multiplier</span>
+            <input type="range" id="slider-contrast" min="0.5" max="3.0" step="0.1" value="1.5">
+            <span class="slider-value" id="val-contrast">1.5</span>
+          </div>
+          <div class="toggle-control">
+            <span class="toggle-label">Invert Silhouette</span>
+            <label class="switch">
+              <input type="checkbox" id="check-invert" checked>
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h2>Character Sets</h2>
+          <div class="char-presets-grid">
+            <button class="char-btn active" id="char-standard" data-set="standard" title="Classic gradient mapping">Classic</button>
+            <button class="char-btn" id="char-blocks" data-set="blocks" title="Full, half and shadow blocks">Blocks</button>
+            <button class="char-btn" id="char-binary" data-set="binary" title="Binary digits 0 and 1">Binary</button>
+            <button class="char-btn" id="char-matrix" data-set="matrix" title="Sparsely mapped digital matrix runes">Matrix</button>
+          </div>
+          <div class="custom-chars-input-group">
+            <label for="input-custom-chars">Custom Character Ramp (Dark to Light):</label>
+            <input type="text" id="input-custom-chars" value="@#S%?*+;:-. " placeholder="Darkest to lightest characters">
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h2>Visual Themes</h2>
+          <div class="theme-selector-grid">
+            <button class="theme-btn active" data-theme="high-contrast" style="--theme-primary: #000; --theme-bg: #fff; --theme-border: #ccc;">
+              <span class="theme-btn-label">B&amp;W Silhouette</span>
+            </button>
+            <button class="theme-btn" data-theme="amber-glow" style="--theme-primary: #ffb000; --theme-bg: #1a0f00; --theme-border: #4d2d00;">
+              <span class="theme-btn-label">Amber Terminal</span>
+            </button>
+            <button class="theme-btn" data-theme="matrix-code" style="--theme-primary: #00ff66; --theme-bg: #000a02; --theme-border: #00330d;">
+              <span class="theme-btn-label">Matrix Code</span>
+            </button>
+            <button class="theme-btn" data-theme="cyberpunk-neon" style="--theme-primary: #ff007f; --theme-bg: #0c001a; --theme-border: #330066;">
+              <span class="theme-btn-label">Cyber Neon</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-section exports-section">
+          <h2>Export & Capture</h2>
+          <div class="export-buttons">
+            <button class="action-btn" id="btn-export-frame">Copy Frame to Clipboard</button>
+            <button class="action-btn" id="btn-export-loop">Download 10s ASCII Loop</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
